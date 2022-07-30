@@ -21,9 +21,6 @@ import java.util.stream.Collectors;
 public class JwtServiceImpl implements JwtService {
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
     private UserProfileMapper userProfileMapper;
 
     private static String SECRET_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAVbb8MMmDDA5xKw1L6FbEquZ4RjZOLqe4aroh3+abXQ ed25519-key-20220729";
@@ -32,11 +29,8 @@ public class JwtServiceImpl implements JwtService {
     private static long EXPIRATION_TIME = 600*1000;
 
     @Override
-    public String generateToken(UserDetails userDetails) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), userDetails.getPassword());
-        authenticationManager.authenticate(authentication);
+    public  String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-
         String authority=userProfileMapper.getAuthority(userDetails.getUsername());
         claims.put("username", userDetails.getUsername());
         return Jwts.builder()

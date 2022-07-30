@@ -1,45 +1,36 @@
 package com.intern.firstproject.config;
 
 
+import com.intern.firstproject.config.handler.LoginSuccessHandler;
 import com.intern.firstproject.filter.JwtAuthenticationFilter;
-import com.intern.firstproject.filter.LoginFilter;
+import com.intern.firstproject.service.impl.JwtServiceImpl;
 import com.intern.firstproject.service.impl.UserDetailServiceImpl;
+import org.apache.tomcat.util.http.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.config.ldap.LdapBindAuthenticationManagerFactory;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.sql.DataSource;
-import java.util.Arrays;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import javax.servlet.http.HttpServletRequest;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    //
-//
-//    @Autowired
 
     @Autowired
     @Lazy
@@ -48,14 +39,33 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserDetailServiceImpl userDetailsServiceImpl;
 
+//    @Autowired
+//    @Lazy
+//    LoginSuccessHandler loginSuccessHandler;
+
     @Override
     public void configure(HttpSecurity http) throws Exception {
 
         http
                 .formLogin()
 //                .loginPage("/login.html")
-                .loginProcessingUrl("/login") //port
-                .successForwardUrl("/auth");
+                .loginProcessingUrl("/login")
+                .successHandler((request, response, authentication) -> {
+                    // run custom logics upon successful login
+
+                    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+                    String username = userDetails.getUsername();
+                    String token= jwtService().generateToken(userDetails);
+                    System.out.println("The user " + username + " has logged in.");
+                    System.out.println(token);
+                    PrintWriter printWriter=response.getWriter();
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    printWriter.println("{\n\t\"token\": \""+token+"\"\n}");
+                    printWriter.flush();
+                    printWriter.close();
+                }); //port
+
 
         http
                 .authorizeRequests()
@@ -65,7 +75,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
         http
-                .addFilterBefore(jwtAuthenticationFilter,UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 //                .sessionManagement()
 //                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 //                .and()
@@ -80,96 +90,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    ////
-////    @Override
-////    protected void configure(HttpSecurity http) throws Exception {
-////        http
-////                .formLogin()
-////                .loginPage("/login.html")
-////                .loginProcessingUrl("/login")
-////                .successForwardUrl("/home.html");
-////
-////        http
-////                .authorizeRequests()
-////                .antMatchers("/login.html").permitAll()
-////                .antMatchers("/test/admin").hasAuthority("admin")
-////                .anyRequest().authenticated()
-////                .and()
-////                .httpBasic();
-////
-////        http
-////                .cors()
-////                .configurationSource(configurationSource())
-////                .and()
-////                .csrf().disable();
-////    }
-//
-////    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-////        http
-////                .formLogin().permitAll();
-//////                .loginPage("/login.html").permitAll()
-//////                .loginProcessingUrl("/login")
-//////                .successForwardUrl("/home")
-//////                .failureForwardUrl("/loginError");
-////
-////        http
-////                .authorizeRequests(authorize -> {
-////                    try {
-////                        authorize
-////                                .antMatchers("/test/hello").permitAll()
-////                                .antMatchers("/oauth/**").permitAll()
-////                                .antMatchers("/user/login").permitAll()
-////                                .antMatchers("/test/admin").hasAuthority("admin")
-////                                .anyRequest().authenticated()
-////                                .and()
-////                                .sessionManagement()
-////                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-////                    } catch (Exception e) {
-////                        e.printStackTrace();
-////                    }
-////                });
-////
-////        http
-////                .cors()
-////                .configurationSource(configurationSource())
-////                .and()
-////                .csrf().disable();
-////
-//////        http.addFilterBefore(, UsernamePasswordAuthenticationFilter.class);
-////
-////        return http.build();
-////    }
-//
-//
-////    @Bean
-////    public AuthenticationManager authenticationManager(
-////            AuthenticationConfiguration authConfig) throws Exception {
-////        return authConfig.getAuthenticationManager();
-////    }
-//
-////    @Bean
-////    @Override
-////    public AuthenticationManager authenticationManagerBean() throws Exception {
-////        return super.authenticationManagerBean();
-////    }
-//
-////    @Bean
-////    CorsConfigurationSource configurationSource() {
-////        CorsConfiguration corsConfiguration = new CorsConfiguration();
-////        corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
-////        corsConfiguration.setAllowedMethods(Arrays.asList("*"));
-////        corsConfiguration.setAllowedMethods(Arrays.asList("*"));
-////        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-////        source.registerCorsConfiguration("/**", corsConfiguration);
-////        return source;
-////    }
-//
-//
-
 
     @Override
     @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
+
+    @Bean
+    public JwtServiceImpl jwtService(){
+        return new JwtServiceImpl();
+    }
+
+
 }

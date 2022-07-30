@@ -5,6 +5,7 @@ import com.intern.firstproject.mapper.UserProfileMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 
@@ -15,15 +16,15 @@ class FirstProjectApplicationTests {
 
     @Resource
     private UserProfileMapper userProfileMapper;
-    @Resource
-    PasswordEncoder passwordEncoder;
+
+    PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
     @Test
     public void testMapper() {
         UserProfile userProfileTest = new UserProfile();
-        userProfileTest.setUserEmail("lawrence422@gmail.com");
-        userProfileTest.setUsername("ql0w0l");
-        userProfileTest.setPassword("123");
+        userProfileTest.setUserEmail("lawrence4221@gmail.com");
+        userProfileTest.setUsername("ql0w0l4");
+        userProfileTest.setPassword("1234");
         int temp = userProfileMapper.insertUser(userProfileTest.getUsername(), passwordEncoder.encode(userProfileTest.getPassword()));
         Assertions.assertEquals(1, temp);
         String str = userProfileMapper.getPassword(userProfileTest.getUsername());

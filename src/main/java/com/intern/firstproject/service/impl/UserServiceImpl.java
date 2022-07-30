@@ -17,9 +17,6 @@ public class UserServiceImpl implements UserService {
     @Resource
     private UserProfileMapper userProfileMapper;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     @Override
     public int insertUser(UserProfile userProfile) {
         if (userProfile ==null||stringUtils.isAnyEmpty(userProfile.getUsername(), userProfile.getPassword())) {
@@ -28,7 +25,7 @@ public class UserServiceImpl implements UserService {
             return -2;
         }
 
-        int temp= userProfileMapper.insertUser(userProfile.getUsername(),passwordEncoder.encode(userProfile.getPassword()));
+        int temp= userProfileMapper.insertUser(userProfile.getUsername(),userProfile.getPassword());
 
         if (temp!=1){
             return -3;

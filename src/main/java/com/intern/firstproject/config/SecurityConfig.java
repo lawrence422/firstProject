@@ -1,11 +1,13 @@
 package com.intern.firstproject.config;
 
 
+import com.intern.firstproject.filter.JwtAuthenticationFilter;
 import com.intern.firstproject.filter.LoginFilter;
 import com.intern.firstproject.service.impl.UserDetailServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -38,7 +40,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     //
 //
 //    @Autowired
-//    private CustomAuthenticationProvider customAuthenticationProvider;
+
+    @Autowired
+    @Lazy
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     private UserDetailServiceImpl userDetailsServiceImpl;
@@ -50,15 +55,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
 //                .loginPage("/login.html")
                 .loginProcessingUrl("/login") //port
-                .successForwardUrl("/home");
+                .successForwardUrl("/auth");
 
         http
                 .authorizeRequests()
                 .antMatchers("/login.html").permitAll()
-                .antMatchers("/auth","/parse").permitAll()
+                .antMatchers("/auth").permitAll()
                 .anyRequest().authenticated();
 
+
         http
+                .addFilterBefore(jwtAuthenticationFilter,UsernamePasswordAuthenticationFilter.class)
 //                .sessionManagement()
 //                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 //                .and()

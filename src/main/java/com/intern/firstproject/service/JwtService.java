@@ -15,4 +15,6 @@ public interface JwtService {
     Claims getClaimsFromToken(String token);
 
     Map<String, Object> parseToken(String token);
+
+    String getUsername(String token);
 }

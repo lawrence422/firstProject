@@ -1,5 +1,6 @@
 package com.intern.firstproject.service.impl;
 
+import com.intern.firstproject.mapper.UserProfileMapper;
 import com.intern.firstproject.service.JwtService;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +11,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
-import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,21 +23,25 @@ public class JwtServiceImpl implements JwtService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private UserProfileMapper userProfileMapper;
 
     private static String SECRET_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAVbb8MMmDDA5xKw1L6FbEquZ4RjZOLqe4aroh3+abXQ ed25519-key-20220729";
 
 
-    private static long EXPIRATION_TIME = 600;
+    private static long EXPIRATION_TIME = 600*1000;
 
     @Override
     public String generateToken(UserDetails userDetails) {
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), userDetails.getPassword());
         authenticationManager.authenticate(authentication);
-
         Map<String, Object> claims = new HashMap<>();
+
+        String authority=userProfileMapper.getAuthority(userDetails.getUsername());
         claims.put("username", userDetails.getUsername());
         return Jwts.builder()
                 .setClaims(claims)
+                .setAudience(authority)
                 .setExpiration(new Date(Instant.now().toEpochMilli() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
@@ -52,6 +55,8 @@ public class JwtServiceImpl implements JwtService {
         String username = getClaimsFromToken(token).getSubject();
         return username.equals(user.getUsername()) && !isTokenExpire(token);
     }
+
+
 
     @Override
     public Boolean isTokenExpire(String token) {
@@ -70,11 +75,18 @@ public class JwtServiceImpl implements JwtService {
         } catch (ExpiredJwtException e) {
             return null;
         }
+    }
 
+    public String getUsername(String token) {
+        Claims claims=getClaimsFromToken(token);
+        if (claims != null) {
+            return String.valueOf(claims.get("username"));
+        }
+        return null;
     }
 
 
-    public Map<String, Object> parseToken(String token) {
+    public Map<String, Object> parseToken(String token){
         Claims claims = getClaimsFromToken(token);
         if (claims != null) {
             return claims.entrySet().stream()

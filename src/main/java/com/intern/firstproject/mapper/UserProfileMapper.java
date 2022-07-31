@@ -11,8 +11,8 @@ public interface UserProfileMapper {
     @InsertProvider(type = UserProfileSql.class,method = "insertUserSql")
     int insertUser(String username,String password);
 
-    @InsertProvider(type = UserProfileSql.class,method = "insertEmailSql")
-    int insertEmail(String username,String userEmail);
+    @UpdateProvider(type = UserProfileSql.class,method = "updateEmailSql")
+    int updatetEmail(String username, String userEmail);
 
     @SelectProvider(type = UserProfileSql.class,method="getPasswordSql")
     String getPassword(String username);
@@ -23,7 +23,7 @@ public interface UserProfileMapper {
     @SelectProvider(type = UserProfileSql.class,method = "getAuthoritySql")
     String getAuthority(String username);
 
-    @InsertProvider(type = UserProfileSql.class,method = "setAuthoritySql")
-    int setAuthority(String username,String authority);
+    @InsertProvider(type = UserProfileSql.class,method = "updateAuthoritySql")
+    int updateAuthority(String username, String authority);
 
 }

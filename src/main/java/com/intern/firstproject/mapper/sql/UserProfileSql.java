@@ -46,18 +46,18 @@ public class UserProfileSql {
         }}.toString();
     }
 
-    public String insertEmailSql(String username,String userEmail){
+    public String updateEmailSql(String username,String userEmail){
         return new SQL(){{
-            INSERT_INTO("fp_user");
-            VALUES("user_email","#{userEmail}");
+            UPDATE("fp_user");
+            SET("user_email=#{userEmail}");
             WHERE("user_name=#{username}");
         }}.toString();
     }
 
-    public String setAuthoritySql(String username,String authority){
+    public String updateAuthoritySql(String username, String authority){
         return new SQL(){{
-            INSERT_INTO("fp_user");
-            VALUES("user_authority","#{authority}");
+            UPDATE("fp_user");
+            SET("user_authority=#{authority}");
             WHERE("user_name=#{username}");
         }}.toString();
     }

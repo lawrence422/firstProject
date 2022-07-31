@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -30,17 +31,20 @@ public class UserServiceImpl implements UserService {
     private AuthenticationManager authenticationManager;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private JwtService jwtService;
 
     @Override
     public JsonResult insertUser(UserProfile userProfile) {
-
-        if (userProfile ==null||stringUtils.isAnyEmpty(userProfile.getUsername(), userProfile.getPassword())) {
+        if (stringUtils.isAnyEmpty(userProfile.getUsername(), userProfile.getPassword())) {
             return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Empty input error");
         }else if (userProfileMapper.checkUsernameExist(userProfile.getUsername())==1){
             return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Username have been exist");
         }
-       int temp= userProfileMapper.insertUser(userProfile.getUsername(),userProfile.getPassword());
+
+       int temp= userProfileMapper.insertUser(userProfile.getUsername(),passwordEncoder.encode(userProfile.getPassword()));
 
 
         if (temp!=1){
@@ -77,9 +81,9 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public JsonResult insertEmail(String email) {
+    public JsonResult insertEmail(String userEmail) {
         Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
-        int temp=userProfileMapper.insertEmail(authentication.getName(),email);
+        int temp=userProfileMapper.updatetEmail(authentication.getName(),userEmail);
         if (temp==0){
             return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "SQL insert error");
         }
@@ -91,7 +95,7 @@ public class UserServiceImpl implements UserService {
         if (stringUtils.isAnyEmpty(name,authority)){
             return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Empty input error");
         }
-        int temp=userProfileMapper.setAuthority(name,authority);
+        int temp=userProfileMapper.updateAuthority(name,authority);
         if (temp==0){
             return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "SQL insert error");
         }

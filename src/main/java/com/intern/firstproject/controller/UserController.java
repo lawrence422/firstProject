@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -17,14 +18,11 @@ import java.util.Map;
 @RequestMapping("/user")
 @SuppressWarnings({"unchecked","rawtypes"})
 public class UserController {
-    @Autowired
-    private JwtService jwtService;
+
 
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
     private LogUtils logUtils=LogUtils.getInstance();
 
     /***
@@ -75,9 +73,9 @@ public class UserController {
     }
 
     @PostMapping("/setAuthority")
-    public JsonResult setAuthority(String username,String authority){
-        log.info("setAuthority << (String : "+username+")");
-        JsonResult response=userService.setAuthority(username,authority);
+    public JsonResult setAuthority(@RequestBody Map<String,String> request){
+        log.info("setAuthority << (String : "+request.get("username")+")");
+        JsonResult response=userService.setAuthority(request.get("username"),request.get("authority"));
         log.info("setAuthority >> (Json : "+logUtils.printObjectAsLog(response)+")");
         return response;
     }

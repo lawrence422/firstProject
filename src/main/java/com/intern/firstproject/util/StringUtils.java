@@ -20,10 +20,10 @@ public class StringUtils {
     public boolean isAnyEmpty(String ... strings){
         for (String string :strings){
             if (string==null){
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
 }

@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-
+/***
+ * Format Exception response to {code:", msg:", data:"} format
+ */
 @RestControllerAdvice
 public class RestExceptionHandler {
     @ExceptionHandler

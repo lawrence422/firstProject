@@ -53,4 +53,12 @@ public class UserProfileSql {
             WHERE("user_name=#{username}");
         }}.toString();
     }
+
+    public String setAuthoritySql(String username,String authority){
+        return new SQL(){{
+            INSERT_INTO("fp_user");
+            VALUES("user_authority","#{authority}");
+            WHERE("user_name=#{username}");
+        }}.toString();
+    }
 }

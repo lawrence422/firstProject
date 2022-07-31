@@ -29,6 +29,9 @@ import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.*;
 
+/***
+ * SecurityConfig setting
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {

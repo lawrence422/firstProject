@@ -27,6 +27,11 @@ public class UserController {
     private AuthenticationManager authenticationManager;
     private LogUtils logUtils=LogUtils.getInstance();
 
+    /***
+     * register user
+     * @param userProfile
+     * @return
+     */
     @PostMapping("/register")
     public JsonResult register(@RequestBody UserProfile userProfile){
         log.info("register << (User : "+logUtils.printObjectAsLog(userProfile)+")");

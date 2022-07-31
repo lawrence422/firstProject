@@ -30,8 +30,11 @@ class FirstProjectApplicationTests {
         String str = userProfileMapper.getPassword(userProfileTest.getUsername());
         Assertions.assertEquals(true, passwordEncoder.matches(userProfileTest.getPassword(), str));
 
-//        int temp2 = userProfileMapper.deleteUser(userProfileTest.getUserEmail());
-//        Assertions.assertEquals(1, temp2);
+        String authority= userProfileMapper.getAuthority("ql0w0l4");
+        Assertions.assertEquals("normal",authority);
+        userProfileMapper.deleteUser("ql0w0l4");
+
+
     }
 
 }

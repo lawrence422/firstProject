@@ -19,7 +19,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("自定义");
         if (userProfileMapper.checkUsernameExist(username) == 0) {
             throw new UsernameNotFoundException("The user isn't exist.");
         } else {

@@ -5,13 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 
 @Controller
-public class RedirectController {
-
-//    @RequestMapping("/login")
-//    public String login(){
-//        return  "redirect:home.html";
-//    }
-
+public class TestRedirectController {
     @RequestMapping("/home")
     public String hello(){
         System.out.println("hello home");

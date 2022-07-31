@@ -54,38 +54,33 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public Boolean isTokenExpire(String token) {
-
         Date expiration = getClaimsFromToken(token).getExpiration();
         return expiration.before(new Date());
     }
 
     @Override
     public Claims getClaimsFromToken(String token) {
-        try {
             return Jwts.parser()
                     .setSigningKey(SECRET_KEY)
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (ExpiredJwtException e) {
-            return null;
-        }
+
     }
 
     public String getUsername(String token) {
         Claims claims=getClaimsFromToken(token);
-        if (claims != null) {
+
             return String.valueOf(claims.get("username"));
-        }
-        return null;
+
     }
 
 
     public Map<String, Object> parseToken(String token){
         Claims claims = getClaimsFromToken(token);
-        if (claims != null) {
+
             return claims.entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        }
-        return null;
+
+
     }
 }

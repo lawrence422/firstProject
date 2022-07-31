@@ -1,4 +1,4 @@
-package com.intern.firstproject.filter;
+package com.intern.firstproject.config.filter;
 
 import com.intern.firstproject.service.impl.JwtServiceImpl;
 import com.intern.firstproject.service.impl.UserDetailServiceImpl;
@@ -16,7 +16,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -32,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if(authHeader!=null){
             String accessToken=authHeader.replace("Bearer ","");
             String username= jwtService.getUsername(accessToken);
-            System.out.println(username);
+//            System.out.println(username);
             UserDetails userDetails= userDetailService.loadUserByUsername(username);
 
             Authentication authentication=

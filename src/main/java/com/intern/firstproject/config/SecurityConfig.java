@@ -1,11 +1,11 @@
 package com.intern.firstproject.config;
 
 
-import com.intern.firstproject.config.handler.LoginSuccessHandler;
-import com.intern.firstproject.filter.JwtAuthenticationFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intern.firstproject.config.filter.JwtAuthenticationFilter;
+import com.intern.firstproject.dao.pojo.JsonResult;
 import com.intern.firstproject.service.impl.JwtServiceImpl;
 import com.intern.firstproject.service.impl.UserDetailServiceImpl;
-import org.apache.tomcat.util.http.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,17 +15,18 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Duration;
 import java.util.*;
 
 @Configuration
@@ -39,47 +40,35 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserDetailServiceImpl userDetailsServiceImpl;
 
-//    @Autowired
-//    @Lazy
-//    LoginSuccessHandler loginSuccessHandler;
-
     @Override
     public void configure(HttpSecurity http) throws Exception {
 
         http
                 .formLogin()
-//                .loginPage("/login.html")
                 .loginProcessingUrl("/login")
-                .successHandler((request, response, authentication) -> {
-                    // run custom logics upon successful login
-
-                    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-                    String username = userDetails.getUsername();
-                    String token= jwtService().generateToken(userDetails);
-                    System.out.println("The user " + username + " has logged in.");
-                    System.out.println(token);
-                    PrintWriter printWriter=response.getWriter();
-                    response.setContentType("application/json");
-                    response.setCharacterEncoding("UTF-8");
-                    printWriter.println("{\n\t\"token\": \""+token+"\"\n}");
-                    printWriter.flush();
-                    printWriter.close();
-                }); //port
+                .successHandler(customLoginSuccessHandler())
+                .and()
+                .logout()
+                .logoutSuccessHandler(customLogoutSuccessHandler());
 
 
         http
                 .authorizeRequests()
                 .antMatchers("/login.html").permitAll()
-                .antMatchers("/auth").permitAll()
+                .antMatchers("/user/login").permitAll()
                 .anyRequest().authenticated();
 
 
         http
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-//                .sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                .and()
+                .cors()
+                .configurationSource(corsConfigurationSource())
+                .and()
                 .csrf().disable();
+
+        http
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
     }
 
     @Override
@@ -98,9 +87,60 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public JwtServiceImpl jwtService(){
+    public JwtServiceImpl jwtService() {
         return new JwtServiceImpl();
     }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setMaxAge(Duration.ofHours(1));
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+
+    AuthenticationSuccessHandler customLoginSuccessHandler() {
+        return (request, response, authentication) -> {
+            // run custom logics upon successful login
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String token = jwtService().generateToken(userDetails);
+            Map<String, String> responseBody = Collections.singletonMap("token", token);
+            PrintWriter printWriter = response.getWriter();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            String jsonOutput = new ObjectMapper().writeValueAsString(JsonResult.success(responseBody));
+            printWriter.println(jsonOutput);
+            printWriter.flush();
+            printWriter.close();
+        };
+    }
+
+    LogoutSuccessHandler customLogoutSuccessHandler(){
+        return (request, response, authentication) -> {
+          if(authentication!=null&&authentication.getPrincipal()!=null){
+              UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+              PrintWriter printWriter = response.getWriter();
+              response.setContentType("application/json");
+              response.setCharacterEncoding("UTF-8");
+              String jsonOutput = new ObjectMapper().writeValueAsString(JsonResult.success(""));
+              printWriter.println(jsonOutput);
+              printWriter.flush();
+              printWriter.close();
+          }
+
+        };
+    }
+
 
 
 }

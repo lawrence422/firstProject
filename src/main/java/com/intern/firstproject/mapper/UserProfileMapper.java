@@ -23,4 +23,7 @@ public interface UserProfileMapper {
     @SelectProvider(type = UserProfileSql.class,method = "getAuthoritySql")
     String getAuthority(String username);
 
+    @InsertProvider(type = UserProfileSql.class,method = "setAuthoritySql")
+    int setAuthority(String username,String authority);
+
 }

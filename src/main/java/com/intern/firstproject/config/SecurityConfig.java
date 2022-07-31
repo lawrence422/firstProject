@@ -56,6 +56,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/login.html").permitAll()
                 .antMatchers("/user/login").permitAll()
+                .antMatchers("/user/setAuthority").hasAuthority("admin")
                 .anyRequest().authenticated();
 
 
@@ -76,9 +77,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth
                 .userDetailsService(userDetailsServiceImpl)
                 .passwordEncoder(new BCryptPasswordEncoder());
-
     }
-
 
     @Override
     @Bean

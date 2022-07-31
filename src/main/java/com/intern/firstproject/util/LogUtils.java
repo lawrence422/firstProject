@@ -1,8 +1,10 @@
 package com.intern.firstproject.util;
 
+import com.sun.org.slf4j.internal.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 @Component
 public class LogUtils<E>{

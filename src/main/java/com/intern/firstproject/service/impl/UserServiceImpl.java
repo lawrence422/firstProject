@@ -8,18 +8,20 @@ import com.intern.firstproject.service.UserService;
 import com.intern.firstproject.util.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import javax.annotation.Resource;
+
 import java.util.Collections;
 import java.util.Map;
 
 @Service
+@SuppressWarnings({"rawtypes"})
 public class UserServiceImpl implements UserService {
-    StringUtils stringUtils = StringUtils.getInstance();
+    private StringUtils stringUtils = StringUtils.getInstance();
 
     @Autowired
     private UserProfileMapper userProfileMapper;
@@ -31,24 +33,24 @@ public class UserServiceImpl implements UserService {
     private JwtService jwtService;
 
     @Override
-    public int insertUser(UserProfile userProfile) {
-        if (userProfile ==null||stringUtils.isAnyEmpty(userProfile.getUsername(), userProfile.getPassword())) {
-            return -1;
-        }else if (userProfileMapper.checkUsernameExist(userProfile.getUsername())==1){
-            return -2;
-        }
+    public JsonResult insertUser(UserProfile userProfile) {
 
-        int temp= userProfileMapper.insertUser(userProfile.getUsername(),userProfile.getPassword());
+        if (userProfile ==null||stringUtils.isAnyEmpty(userProfile.getUsername(), userProfile.getPassword())) {
+            return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Empty input error");
+        }else if (userProfileMapper.checkUsernameExist(userProfile.getUsername())==1){
+            return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Username have been exist");
+        }
+       int temp= userProfileMapper.insertUser(userProfile.getUsername(),userProfile.getPassword());
+
 
         if (temp!=1){
-            return -3;
-        }else{
-            return 1;
+            return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "SQL insert error");
         }
+        return JsonResult.success("");
     }
 
     @Override
-    public JsonResult<Map<String, String>> login(UserProfile userProfile) {
+    public JsonResult login(UserProfile userProfile) {
         String token= jwtService.generateToken(userProfile);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userProfile.getUsername(), userProfile.getPassword());
         authenticationManager.authenticate(authentication);
@@ -57,7 +59,42 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public JsonResult<Map<String, String>> deleteUser() {
-        return null;
+    public JsonResult deleteUser() {
+        Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
+        int temp= userProfileMapper.deleteUser(authentication.getName());
+        if (temp==0){
+            return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "SQL delete error");
+        }
+        SecurityContextHolder.clearContext();
+        return JsonResult.success("");
+    }
+
+    @Override
+    public JsonResult logout(Map<String, String> request) {
+        SecurityContextHolder.clearContext();
+        return JsonResult.success("");
+    }
+
+
+    @Override
+    public JsonResult insertEmail(String email) {
+        Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
+        int temp=userProfileMapper.insertEmail(authentication.getName(),email);
+        if (temp==0){
+            return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "SQL insert error");
+        }
+        return JsonResult.success("");
+    }
+
+    @Override
+    public JsonResult setAuthority(String name, String authority) {
+        if (stringUtils.isAnyEmpty(name,authority)){
+            return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Empty input error");
+        }
+        int temp=userProfileMapper.setAuthority(name,authority);
+        if (temp==0){
+            return JsonResult.fail(HttpStatus.INTERNAL_SERVER_ERROR.value(), "SQL insert error");
+        }
+        return JsonResult.success("");
     }
 }

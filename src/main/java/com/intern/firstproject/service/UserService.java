@@ -5,11 +5,17 @@ import com.intern.firstproject.dao.pojo.UserProfile;
 
 import java.util.Map;
 
-
+@SuppressWarnings({"rawtypes"})
 public interface UserService {
-    int insertUser(UserProfile userProfile);
+    JsonResult insertUser(UserProfile userProfile);
 
-    JsonResult<Map<String, String>> login(UserProfile userProfile);
+    JsonResult login(UserProfile userProfile);
 
-    JsonResult<Map<String, String>> deleteUser();
+    JsonResult deleteUser();
+
+    JsonResult logout(Map<String, String> request);
+
+    JsonResult insertEmail(String email);
+
+    JsonResult setAuthority(String name, String authority);
 }
